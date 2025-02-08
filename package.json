@@ -13,7 +13,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "test": "jest"
+    "test": "jest",
+    "ci:publish": "pnpm test && pnpm build && changeset publish --access public"
   },
   "publishConfig": {
     "access": "public"

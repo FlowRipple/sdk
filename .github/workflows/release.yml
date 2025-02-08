@@ -1,0 +1,56 @@
+name: Release CI/CD
+
+on:
+push:
+  branches:
+    - main # Trigger on pushes to main branch
+
+# Avoid overlapping runs on the same branch
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write # to push changes (e.g., tags or changeset PR)
+  pull-requests: write # to create or update release PR
+  packages: write # to publish to npm
+  id-token: write # for provenance (optional, requires Node 16+)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js 20.x and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org" # use npm registry
+
+      - uses: pnpm/action-setup@v2 # Install pnpm
+        with:
+          version: 9 # specify pnpm version (e.g., v8 or v9)
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: |
+          echo "FLOWRIPPLE_API_CLIENT_ID=${{ secrets.FLOWRIPPLE_API_CLIENT_ID }}" >> .env.test
+          echo "FLOWRIPPLE_API_KEY=${{ secrets.FLOWRIPPLE_API_KEY }}" >> .env.test
+          echo "FLOWRIPPLE_BASE_URL=${{ secrets.FLOWRIPPLE_BASE_URL }}" >> .env.test
+          pnpm test # Runs Jest tests
+        env:
+          FLOWRIPPLE_API_CLIENT_ID: ${{ secrets.FLOWRIPPLE_API_CLIENT_ID }}
+          FLOWRIPPLE_API_KEY: ${{ secrets.FLOWRIPPLE_API_KEY }}
+          FLOWRIPPLE_BASE_URL: ${{ secrets.FLOWRIPPLE_BASE_URL }}
+
+      - name: Create Release PR or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: pnpm run ci:publish # run publish script (defined in package.json)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
