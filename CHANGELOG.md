@@ -1,5 +1,11 @@
 # @flowripple/sdk
 
+## 1.0.1
+
+### Patch Changes
+
+- 57f92c4: Fix Module Exporting type-definitions
+
 ## 1.0.0
 
 ### Major Changes
