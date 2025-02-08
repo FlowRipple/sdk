@@ -18,6 +18,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.2
         version: 29.5.14
+      '@types/node':
+        specifier: ^22.11.1
+        version: 22.13.1
       dotenv:
         specifier: ^16.4.5
         version: 16.4.7

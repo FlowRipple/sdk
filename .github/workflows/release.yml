@@ -1,9 +1,9 @@
 name: Release CI/CD
 
 on:
-push:
-  branches:
-    - main # Trigger on pushes to main branch
+  push:
+    branches:
+      - main
 
 # Avoid overlapping runs on the same branch
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +21,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - uses: pnpm/action-setup@v2 # Install pnpm first
+        with:
+          version: 9 # specify pnpm version (e.g., v8 or v9)
+
       - name: Setup Node.js 20.x and pnpm
         uses: actions/setup-node@v4
         with:
@@ -28,12 +32,22 @@ jobs:
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org" # use npm registry
 
-      - uses: pnpm/action-setup@v2 # Install pnpm
-        with:
-          version: 9 # specify pnpm version (e.g., v8 or v9)
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Validate environment
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "NPM_TOKEN is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.FLOWRIPPLE_API_KEY }}" ]; then
+            echo "FLOWRIPPLE_API_KEY is not set"
+            exit 1
+          fi
 
       - name: Run tests
         run: |
@@ -46,6 +60,7 @@ jobs:
           FLOWRIPPLE_API_KEY: ${{ secrets.FLOWRIPPLE_API_KEY }}
           FLOWRIPPLE_BASE_URL: ${{ secrets.FLOWRIPPLE_BASE_URL }}
 
+    
       - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
