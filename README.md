@@ -1,6 +1,6 @@
 # @flowripple/sdk
 
-The official Node.js SDK for Flowripple - a powerful event tracking and analytics platform.
+The official Node.js SDK for Flowripple - a visual workflow automation platform.
 
 ## Installation
 
@@ -16,30 +16,35 @@ Or using yarn:
 yarn add @flowripple/sdk
 ```
 
+Or using pnpm:
+
+```bash
+pnpm add @flowripple/sdk
+```
+
 ## Usage
 
-First, import and initialize the FlowrippleClient with your API credentials:
+First, import and initialize the FlowrippleClient with your API key:
 
 ```typescript
 import { FlowrippleClient } from '@flowripple/sdk';
 
 const client = new FlowrippleClient({
-  apiClientId: YOUR_CLIENT_ID,
-  apiKey: 'YOUR_API_KEY'
+  apiKey: 'frp_your-api-key'
 });
 ```
 
-Then use the client to capture events:
+Then use the client to trigger workflow events:
 
 ```typescript
-// Capture a simple event
-await client.capture('user.signup', {
+// Trigger a simple event
+await client.trigger('user.signup', {
   userId: '123',
   email: 'user@example.com'
 });
 
-// Capture an event with custom properties
-await client.capture('order.completed', {
+// Trigger an event with custom data
+await client.trigger('order.completed', {
   orderId: 'ord_123',
   amount: 99.99,
   currency: 'USD',
@@ -59,20 +64,18 @@ The `FlowrippleClient` constructor accepts a configuration object with the follo
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
-| `apiClientId` | number | Yes | - | Your Flowripple API Client ID |
-| `apiKey` | string | Yes | - | Your Flowripple API Key |
+| `apiKey` | string | Yes | - | Your Flowripple API Key (starts with `frp_`) |
 | `baseUrl` | string | No | 'https://api.flowripple.com' | Custom API base URL |
 | `silent` | boolean | No | false | If true, failed API calls return false instead of throwing errors |
-| `version` | 'v1' | No | 'v1' | API version to use |
 
 #### Methods
 
-##### `capture(eventName: string, payload: object): Promise<false | void>`
+##### `trigger(identifier: string, data?: Record<string, any>): Promise<false | void>`
 
-Captures an event by sending it to the Flowripple API.
+Triggers a workflow by sending an event to the Flowripple API.
 
-- `eventName`: The name of the event to capture
-- `payload`: An object containing the event data
+- `identifier`: The event identifier to trigger (e.g., 'user.signup', 'order.completed')
+- `data`: Optional object containing the event data
 - Returns: A promise that resolves to `void` on success, or `false` if the request fails and silent mode is enabled
 - Throws: An error if the request fails and silent mode is not enabled
 
@@ -82,15 +85,14 @@ By default, the SDK will throw errors when API requests fail. You can enable sil
 
 ```typescript
 const client = new FlowrippleClient({
-  apiClientId: YOUR_CLIENT_ID,
-  apiKey: 'YOUR_API_KEY',
+  apiKey: 'frp_your-api-key',
   silent: true
 });
 
 // This will return false instead of throwing if the request fails
-const result = await client.capture('user.signup', { userId: '123' });
+const result = await client.trigger('user.signup', { userId: '123' });
 if (result === false) {
-  console.log('Event capture failed');
+  console.log('Event trigger failed');
 }
 ```
 
