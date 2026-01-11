@@ -1,13 +1,10 @@
 import axios from 'axios';
-import crypto from 'crypto';
 
 /**
  * Configuration options for initializing the FlowrippleClient
  */
 interface FlowrippleClientOptions {
-  /** (Required) Flowripple API Client ID */
-  apiClientId: number;
-  /** (Required) API key for authentication with Flowripple */
+  /** (Required) API key for authentication with Flowripple (starts with frp_) */
   apiKey: string;
   /** (Optional) Base URL for the Flowripple API. Defaults to https://api.flowripple.com */
   baseUrl?: string;
@@ -23,10 +20,10 @@ interface FlowrippleClientOptions {
  * @example
  * ```typescript
  * const client = new FlowrippleClient({
- *   apiKey: 'your-api-key'
+ *   apiKey: 'frp_your-api-key'
  * });
  *
- * await client.capture('user.signup', {
+ * await client.trigger('user.signup', {
  *   userId: '123',
  *   email: 'user@example.com'
  * });
@@ -44,33 +41,28 @@ export class FlowrippleClient {
   }
 
   /**
-   * Captures an event by sending it to the Flowripple API
-   * @param eventName - The name of the event to capture
-   * @param payload - The payload data associated with the event
-   * @returns Promise that resolves to true if the event was successfully captured,
+   * Triggers a workflow by sending an event to the Flowripple API
+   * @param identifier - The event identifier to trigger
+   * @param data - Optional data payload associated with the event
+   * @returns Promise that resolves to void on success,
    *          or false if silent mode is enabled and the request failed
    * @throws {Error} If the request fails and silent mode is not enabled
    */
-  async capture(eventName: string, payload: object): Promise<false | void> {
+  async trigger(
+    identifier: string,
+    data?: Record<string, any>,
+  ): Promise<false | void> {
     try {
       const body = {
-        event: eventName,
-        payload,
+        identifier,
+        data: data || {},
       };
 
-      const timestamp = Date.now().toString();
-      const stringToSign = timestamp + JSON.stringify(body);
-      const hmac = crypto
-        .createHmac('sha256', this.options.apiKey)
-        .update(stringToSign)
-        .digest('hex');
-      const url = `${this.baseUrl.replace(/^\/+/, '')}/sdk/${this.options.version ?? 'v1'}/capture`;
+      const url = `${this.baseUrl.replace(/\/+$/, '')}/api/${this.options.version ?? 'v1'}/trigger`;
       await axios.post(url, body, {
         headers: {
           'Content-Type': 'application/json',
-          'X-Flowripple-Api-Client-Id': this.options.apiClientId,
-          'X-Flowripple-Signature': hmac,
-          'X-Flowripple-Timestamp': timestamp,
+          'x-api-key': this.options.apiKey,
         },
       });
       return;
@@ -80,7 +72,7 @@ export class FlowrippleClient {
       }
 
       throw new Error(
-        `Failed to capture event: ${(error as Error)?.message ?? error}`,
+        `Failed to trigger event: ${(error as Error)?.message ?? error}`,
       );
     }
   }
