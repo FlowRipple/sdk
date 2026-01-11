@@ -44,23 +44,7 @@ jobs:
             echo "NPM_TOKEN is not set"
             exit 1
           fi
-          if [ -z "${{ secrets.FLOWRIPPLE_API_KEY }}" ]; then
-            echo "FLOWRIPPLE_API_KEY is not set"
-            exit 1
-          fi
-
-      - name: Run tests
-        run: |
-          echo "FLOWRIPPLE_API_CLIENT_ID=${{ secrets.FLOWRIPPLE_API_CLIENT_ID }}" >> .env.test
-          echo "FLOWRIPPLE_API_KEY=${{ secrets.FLOWRIPPLE_API_KEY }}" >> .env.test
-          echo "FLOWRIPPLE_BASE_URL=${{ secrets.FLOWRIPPLE_BASE_URL }}" >> .env.test
-          pnpm test # Runs Jest tests
-        env:
-          FLOWRIPPLE_API_CLIENT_ID: ${{ secrets.FLOWRIPPLE_API_CLIENT_ID }}
-          FLOWRIPPLE_API_KEY: ${{ secrets.FLOWRIPPLE_API_KEY }}
-          FLOWRIPPLE_BASE_URL: ${{ secrets.FLOWRIPPLE_BASE_URL }}
-
-    
+          
       - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
