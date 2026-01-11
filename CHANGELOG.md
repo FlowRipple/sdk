@@ -1,5 +1,11 @@
 # @flowripple/sdk
 
+## 3.0.0
+
+### Major Changes
+
+- 1e625e9: Update SDK to make use of the latest flowripple api structure
+
 ## 2.0.0
 
 ### Major Changes
