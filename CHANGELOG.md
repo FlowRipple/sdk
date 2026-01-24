@@ -1,5 +1,11 @@
 # @flowripple/sdk
 
+## 3.1.0
+
+### Minor Changes
+
+- cec6e46: Add support for idempotency keys
+
 ## 3.0.0
 
 ### Major Changes
