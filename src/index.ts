@@ -15,6 +15,19 @@ interface FlowrippleClientOptions {
 }
 
 /**
+ * Options for the trigger method
+ */
+interface TriggerOptions {
+  /**
+   * Idempotency key to prevent duplicate event processing.
+   * If the same key is used for the same event identifier, the cached response is returned.
+   * Keys are scoped per event identifier, so different events can use the same key.
+   * Max 256 characters, alphanumeric with -_:. allowed.
+   */
+  idempotencyKey?: string;
+}
+
+/**
  * Client for interacting with the Flowripple API
  *
  * @example
@@ -44,6 +57,7 @@ export class FlowrippleClient {
    * Triggers a workflow by sending an event to the Flowripple API
    * @param identifier - The event identifier to trigger
    * @param data - Optional data payload associated with the event
+   * @param options - Optional trigger options including idempotency key
    * @returns Promise that resolves to void on success,
    *          or false if silent mode is enabled and the request failed
    * @throws {Error} If the request fails and silent mode is not enabled
@@ -51,12 +65,17 @@ export class FlowrippleClient {
   async trigger(
     identifier: string,
     data?: Record<string, any>,
+    options?: TriggerOptions,
   ): Promise<false | void> {
     try {
-      const body = {
+      const body: Record<string, any> = {
         identifier,
         data: data || {},
       };
+
+      if (options?.idempotencyKey) {
+        body.idempotencyKey = options.idempotencyKey;
+      }
 
       const url = `${this.baseUrl.replace(/\/+$/, '')}/api/${this.options.version ?? 'v1'}/trigger`;
       await axios.post(url, body, {
